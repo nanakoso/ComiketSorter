@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<project name="cmsort" basedir="." default="all">
+
+  <!-- properties -->
+  <property name="var"         value="b02" />
+
+  <property name="source"      value="src" />
+  <property name="txt"         value="txt" />
+  <property name="bin"         value="bin" />
+  <property name="lib"         value="lib" />
+  <property name="dest"        value="dest" />
+  <property name="testfile"    value="testfile" />
+  <property name="arcfilename" value="cmsortsrc.zip" />
+  <property name="jarfilename" value="cmsort.jar" />
+  <property name="relfilename" value="cmsort_${var}.zip" />
+  <property name="reldirname"  value="cmsort_${var}" />
+  <property name="prjdirname"  value="ComiketSorter" />
+  <path id="classpath">
+    <fileset dir="${lib}" includes="*.jar"/>
+  </path>
+
+  <!-- all -->
+  <target name="all" depends="compile" />
+
+  <!-- Initialize -->
+  <target name="init">
+    <mkdir dir="${bin}" />
+    <mkdir dir="${dest}" />
+  </target>
+
+
+  <!-- compile java sources -->
+  <target name="compile" depends="init" >
+    <javac srcdir="${source}" destdir="${bin}"
+      encoding="Shift_JIS"
+      debug="on" optimize="off" 
+      deprecation="off" 
+      target="1.1"  >
+    	<classpath refid="classpath"  />
+    </javac>
+  </target>
+
+  <!-- make jarfile  -->
+  <target name="jar"  depends="compile">
+    <jar jarfile="${dest}/${jarfilename}"
+    	basedir="${bin}"
+    >
+        <fileset dir="${bin}">
+            <include name="**/*.class" />
+        </fileset>
+
+		<zipgroupfileset dir="${lib}">
+            <include name="**/*.jar" />
+		</zipgroupfileset>
+
+		<manifest>
+			<attribute 
+				name="Main-Class" 
+				value="jp.gr.java_conf.turner.comiket.ComiketSorter"/>
+		</manifest>
+    </jar>
+  </target>
+
+  <!-- make release file  -->
+  <target name="rls"  depends="jar">
+    <zip destfile="${dest}/${relfilename}" >
+        <zipfileset dir="${dest}" prefix="${reldirname}"  >
+            <include name="cmsort.jar" />
+        </zipfileset>
+
+
+        <zipfileset dir="${lib}" prefix="${reldirname}">
+            <include name="*.dll" />
+            <include name="*.exe" />
+        </zipfileset>
+
+        <zipfileset dir="${txt}" prefix="${reldirname}">
+            <include name="readme.txt" />
+            <include name="D&amp;D.txt" />
+            <include name="D&amp;Djava.txt" />
+            <include name="*.vbs" />
+        </zipfileset>
+
+    </zip>
+  </target>
+
+  <!-- make source archive  -->
+  <target name="arc"  depends="init">
+    <zip destfile="${dest}/${arcfilename}" >
+
+        <zipfileset dir="${source}" prefix="${prjdirname}/${source}"  >
+            <include name="**/*.java" />
+        </zipfileset>
+
+        <zipfileset dir="${lib}" prefix="${prjdirname}/${lib}">
+            <include name="**/*.jar" />
+            <!-- include name="**/*.dll" /-->
+            <!-- include name="**/*.exe" /-->
+        </zipfileset>
+
+        <zipfileset dir="${txt}" prefix="${prjdirname}/${txt}">
+            <exclude name="**/*.BAK" />
+            <exclude name="**/*.swp" />
+            <exclude name="**/*.~" />
+            <exclude name="**/.*" />
+        </zipfileset>
+
+
+        <zipfileset dir="${testfile}" prefix="${prjdirname}/${testfile}">
+            <include name="**/*.csv" />
+            <include name="**/*.txt" />
+        </zipfileset>
+
+        <zipfileset dir="."  prefix="${prjdirname}">
+            <include name="build.xml" />
+            <include name=".classpath" />
+            <include name=".project" />
+        </zipfileset>
+    </zip>
+  </target>
+
+  <!-- clean work file -->
+  <target name="clean">
+    <delete dir="${bin}" />
+    <delete dir="${dest}" />
+  </target>
+
+	
+</project>
