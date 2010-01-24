@@ -60,7 +60,7 @@ public class ComiketSorter {
 	private static CommandLine opts; //ˆø”ƒIƒvƒVƒ‡ƒ“
 	private static final String DEBUG_OPTION_STR = "sorter.debug";
 	private static final String WIN_CRLF = "\r\n";
-	private static final String WIN_SJIS;
+	public static final String WIN_SJIS;
 	static {
 		String vender = System.getProperty("java.vendor");
 		if (vender.startsWith("Sun Microsystems")) {
