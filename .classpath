@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" path="src"/>
-    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-    <classpathentry kind="lib" path="lib/commons-cli-1.0.jar" sourcepath="/ComiketSorter/src/cli-1.0-src.zip"/>
-    <classpathentry kind="output" path="bin"/>
+	<classpathentry path="src" kind="src"/>
+	<classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"/>
+	<classpathentry sourcepath="src/cli-1.0-src.zip" path="lib/commons-cli-1.0.jar" kind="lib"/>
+	<classpathentry path="lib/google-collect-1.0.jar" kind="lib"/>
+	<classpathentry path="bin" kind="output"/>
 </classpath>
