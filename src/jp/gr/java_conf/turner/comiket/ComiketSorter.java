@@ -889,11 +889,18 @@ public class ComiketSorter {
 		w.write(WIN_CRLF);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void readLines(String inFile) throws IOException {
-		InputStream is = new FileInputStream(inFile);
+		this.header = readLines(inFile, colorList, circleList, unKnownList);
+	}
 
-		BufferedReader r =
-			new BufferedReader(new InputStreamReader(is, WIN_SJIS));
+	public static Header readLines(String inFile, List<Color> colorList,
+			List<Circle> circleList, List<UnKnown> unKnownList)
+			throws IOException {
+		InputStream is = new FileInputStream(inFile);
+		Header header = null;
+		BufferedReader r = new BufferedReader(new InputStreamReader(is,
+				WIN_SJIS));
 
 		int line = 0;
 		GenericCSVLine in;
@@ -904,14 +911,15 @@ public class ComiketSorter {
 			if (in instanceof Header) {
 				header = (Header) in;
 			} else if (in instanceof Color) {
-				colorList.add(in);
+				colorList.add((Color) in);
 			} else if (in instanceof Circle) {
-				circleList.add(in);
+				circleList.add((Circle) in);
 			} else if (in instanceof UnKnown) {
-				unKnownList.add(in);
+				unKnownList.add((UnKnown) in);
 			}
 			line++;
 		}
 		r.close();
+		return header;
 	}
 }
