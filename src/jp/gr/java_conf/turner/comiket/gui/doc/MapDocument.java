@@ -73,7 +73,7 @@ public class MapDocument extends Observable {
 
 	public void setCatalogRoot(File argRoot) {
 
-		if (argRoot != null || !argRoot.isDirectory()) {
+		if (argRoot != null && !argRoot.isDirectory()) {
 			File parent = argRoot.getParentFile();
 			if (parent != null) {
 				argRoot = parent;
