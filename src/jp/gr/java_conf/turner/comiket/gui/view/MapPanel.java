@@ -3,9 +3,14 @@
  */
 package jp.gr.java_conf.turner.comiket.gui.view;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -16,6 +21,7 @@ import jp.gr.java_conf.turner.comiket.csv.Circle;
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument;
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Area;
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Days;
+import jp.gr.java_conf.turner.comiket.sorter.elem.AbstractCircle;
 
 /**
  * @author TURNER
@@ -24,23 +30,20 @@ import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Days;
 @SuppressWarnings("serial")
 public class MapPanel extends JPanel implements Observer {
 
-//	private Image bg = null;
-//
-//	private Image image = null;
-//
-//	private Image fg = null;
+	private static final int OFFSET_X = 5;
 
-	
+	private static final int OFFSET_Y = 5;
+
 	private Days viewDay = Days.DAY1;
 
 	private Area viewArea = Area.E123;
 
 	private MapDocument doc;
-	
+
 	public MapPanel(MapDocument doc) {
 		super();
 		setBackground(Color.WHITE);
-		
+
 		this.doc = doc;
 	}
 
@@ -51,31 +54,50 @@ public class MapPanel extends JPanel implements Observer {
 	 */
 	@Override
 	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D) g;
+		super.paintComponent(g2);
 		Image bg = doc.getBGImage(viewDay, viewArea);
 		if (bg != null) {
-			g.drawImage(bg, 0, 0, this);
+			g2.drawImage(bg, 0, 0, this);
 		}
 		Image image = doc.getMapImage(viewDay, viewArea);
 		if (image != null) {
-			g.drawImage(image, 0, 0, this);
+			g2.drawImage(image, 0, 0, this);
 		}
 		Image fg = doc.getFGImage(viewDay, viewArea);
 		if (fg != null) {
-			g.drawImage(fg, 0, 0, this);
+			g2.drawImage(fg, 0, 0, this);
 		}
+
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+		g2.setColor(Color.RED);
+
+		g2.setStroke(new BasicStroke(6));
 		List<Circle> circles = doc.getCircles(viewDay, viewArea);
-		if(circles!=null){
+		if (circles != null) {
 			int size = circles.size();
-			int[] xs = new int[size];
-			int[] ys = new int[size];
-			for(int i=0;i<size;i++){
+			GeneralPath path = new GeneralPath();
+			for (int i = 0; i < size; i++) {
 				Circle c = circles.get(i);
-				xs[i] = c.getMapX();
-				ys[i] = c.getMapY();
+				int x, y;
+				if (c instanceof AbstractCircle) {
+					AbstractCircle ac = (AbstractCircle) c;
+					x = ac.getX();
+					y = ac.getY();
+				} else {
+					x = c.getMapX() + OFFSET_X;
+					y = c.getMapY() + OFFSET_Y;
+				}
+				if (i == 0) {
+					path.moveTo(x, y);
+				} else {
+					path.lineTo(x, y);
+				}
+				g2.draw(new Line2D.Float(x, y, x, y));
 			}
-			g.setColor(Color.RED);
-			g.drawPolyline(xs, ys, size);
+			g2.setStroke(new BasicStroke(2));
+			g2.draw(path);
 		}
 	}
 
@@ -86,33 +108,10 @@ public class MapPanel extends JPanel implements Observer {
 	 */
 	public void update(Observable o, Object arg) {
 		if (o instanceof MapDocument) {
-//			MapDocument doc = (MapDocument) o;
-//			setImage(doc.getMapImage(this.viewDay, this.viewArea));
-//			setFg(doc.getFGImage(this.viewDay, this.viewArea));
-//			setBg(doc.getBGImage(this.viewDay, this.viewArea));
 			repaint();
 		}
 	}
 
-//	public void setImage(Image image) {
-//		this.image = image;
-//	}
-//
-//	/**
-//	 * @param bg
-//	 *            Ý’è‚·‚é bg
-//	 */
-//	public void setBg(Image bg) {
-//		this.bg = bg;
-//	}
-//
-//	/**
-//	 * @param fg
-//	 *            Ý’è‚·‚é fg
-//	 */
-//	public void setFg(Image fg) {
-//		this.fg = fg;
-//	}
 
 	/**
 	 * @param day
