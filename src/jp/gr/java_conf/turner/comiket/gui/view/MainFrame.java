@@ -12,10 +12,21 @@ import static jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Days.DAY3;
 
 import java.awt.BorderLayout;
 import java.awt.HeadlessException;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -215,4 +226,49 @@ public class MainFrame extends JFrame {
 
 	}
 
+	DropTargetListener dtl = new DropTargetAdapter() {
+
+		@Override
+		public void dragOver(DropTargetDragEvent dtde) {
+			if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+				dtde.acceptDrag(DnDConstants.ACTION_COPY);
+				return;
+			}
+			dtde.rejectDrag();
+		}
+
+		public void drop(DropTargetDropEvent dtde) {
+			if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+				dtde.acceptDrop(DnDConstants.ACTION_COPY);
+				Transferable t = dtde.getTransferable();
+				try {
+					List list = (List) t
+							.getTransferData(DataFlavor.javaFileListFlavor);
+					boolean csvDone = false;
+					boolean rootDone = false;
+					for (Object o : list) {
+						if (o instanceof File) {
+							File f = (File) o;
+							if (f.isFile() && csvDone == false) {
+								MainFrame.this.doc.setCSVRoot(f);
+								csvDone = true;
+							} else if (f.isDirectory() && rootDone == false) {
+								MainFrame.this.doc.setCatalogRoot(f);
+								rootDone = true;
+							}
+						}
+					}
+				} catch (UnsupportedFlavorException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				dtde.dropComplete(true);
+				return;
+			}
+		}
+	};
+	{
+		new DropTarget(this, DnDConstants.ACTION_COPY, dtl, true);
+	}
 }
