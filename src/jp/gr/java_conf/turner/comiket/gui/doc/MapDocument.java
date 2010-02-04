@@ -16,10 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import jp.gr.java_conf.turner.comiket.ComiketSorter;
 import jp.gr.java_conf.turner.comiket.csv.Circle;
 import jp.gr.java_conf.turner.comiket.csv.Color;
+import jp.gr.java_conf.turner.comiket.csv.Header;
 import jp.gr.java_conf.turner.comiket.csv.UnKnown;
 import jp.gr.java_conf.turner.comiket.def.ComiketDate;
 import jp.gr.java_conf.turner.comiket.def.GenericDef;
@@ -50,13 +53,15 @@ public class MapDocument extends Observable {
 
 	private File catalogRoot = null;
 
+	private File csvRoot = null;
+
 	boolean validCatalogRoot = false;
 
 	private Map<MapKey, Image> imageCache = new HashMap<MapKey, Image>();
 
 	private ArrayList<ComiketDate> comiketDate = new ArrayList<ComiketDate>();
 
-	private Object header = null;
+	private Header header = null;
 
 	private Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
 
@@ -117,12 +122,12 @@ public class MapDocument extends Observable {
 	}
 
 	public void readCSVFile(File inFile) {
-		header = null;
-		colorList.clear();
-		unKnownList.clear();
-		circles.clear();
-		dropCircles.clear();
-	
+		Header header = null;
+		List<Color> colorList = new ArrayList<Color>();
+		List<UnKnown> unKnownList = new ArrayList<UnKnown>();
+		Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
+		List<Circle> dropCircles = new ArrayList<Circle>();
+
 		List<Circle> circleList = new ArrayList<Circle>();
 		try {
 			header = ComiketSorter.readLines(inFile.getPath(), colorList,
@@ -145,6 +150,12 @@ public class MapDocument extends Observable {
 				dropCircles.add(c);
 			}
 		}
+
+		this.header = header;
+		this.colorList = colorList;
+		this.unKnownList = unKnownList;
+		this.circles = circles;
+		this.dropCircles = dropCircles;
 	}
 
 	/**
@@ -383,7 +394,7 @@ public class MapDocument extends Observable {
 			String weekday = c.getWeekDay();
 			for (Days d : Days.values()) {
 				if (d.ordinal() < comiketDate.size()) {
-					if (comiketDate.get(d.ordinal()).equals(weekday)) {
+					if (comiketDate.get(d.ordinal()).getWeekday().equals(weekday)) {
 						return d;
 					}
 				}
@@ -392,4 +403,36 @@ public class MapDocument extends Observable {
 
 		}
 	}
+
+	/**
+	 * @return
+	 */
+	public File getCSVRoot() {
+		return this.csvRoot;
+	}
+
+	/**
+	 * @param f
+	 */
+	public void setCSVRoot(final File f) {
+
+		ex.execute(new Runnable() {
+
+			public void run() {
+				MapDocument.this.csvRoot = null;
+				if (f != null) {
+					MapDocument.this.readCSVFile(f);
+				}
+				MapDocument.this.csvRoot = f;
+				MapDocument.this.setChanged();
+				MapDocument.this.notifyObservers();
+			}
+		});
+	}
+
+	public static void shutdownNow() {
+		ex.shutdownNow();
+	}
+
+	private static final ExecutorService ex = Executors.newCachedThreadPool();
 }

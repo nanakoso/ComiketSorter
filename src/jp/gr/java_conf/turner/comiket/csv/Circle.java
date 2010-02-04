@@ -48,8 +48,12 @@ public class Circle extends GenericCSVLine {
 	private static final int INDEX_SIDE = 21; // 0:a 1:b
 	protected static final int INDEX_MAX_ = 22;
 	
-	public int getPage(){
-		return Integer.parseInt(columns[INDEX_PAGE]);
+	public int getPage() {
+		if (columns[INDEX_PAGE].length() > 0) {
+			return Integer.parseInt(columns[INDEX_PAGE]);
+		} else {
+			return 0;
+		}
 	}
 
 	public int getId() {

@@ -13,6 +13,8 @@ import static jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Days.DAY3;
 import java.awt.BorderLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.AbstractAction;
@@ -46,7 +48,6 @@ public class MainFrame extends JFrame {
 	public MainFrame() throws HeadlessException {
 		this.setTitle("コミケソータ");
 		this.setSize(600, 500);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		this.getRootPane().setJMenuBar(initMenu());
 
@@ -59,6 +60,18 @@ public class MainFrame extends JFrame {
 		this.getContentPane().add(this.mapPanel, BorderLayout.CENTER);
 
 		this.getContentPane().add(initToolbar(), BorderLayout.NORTH);
+		this.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				//キャンセル等未実装
+				MainFrame.this.dispose();
+			}
+			@Override
+			public void windowClosed(WindowEvent e) {
+				MapDocument.shutdownNow();
+				System.exit(0);
+			}
+		});
 	}
 
 	/**
@@ -69,6 +82,7 @@ public class MainFrame extends JFrame {
 		final JMenu mFile = new JMenu("ファイル");
 
 		mFile.add(aOpen);
+		mFile.add(aCSVOpen);
 		mFile.addSeparator();
 		mFile.add(aExit);
 		mb.add(mFile);
@@ -168,6 +182,22 @@ public class MainFrame extends JFrame {
 				final File f = jFileChooser.getSelectedFile();
 				System.out.println(f);
 				MainFrame.this.doc.setCatalogRoot(f);
+				break;
+			default:
+			}
+		}
+	};
+
+	final Action aCSVOpen = new AbstractAction("CSVを開く ...") {
+		public void actionPerformed(ActionEvent e) {
+			File csvRoot = MainFrame.this.doc.getCSVRoot();
+			jFileChooser.setSelectedFile(csvRoot);
+			int selected = jFileChooser.showOpenDialog(MainFrame.this);
+			switch (selected) {
+			case JFileChooser.APPROVE_OPTION:
+				final File f = jFileChooser.getSelectedFile();
+				System.out.println(f);
+				MainFrame.this.doc.setCSVRoot(f);
 				break;
 			default:
 			}

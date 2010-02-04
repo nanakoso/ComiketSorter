@@ -6,16 +6,16 @@ package jp.gr.java_conf.turner.comiket.gui.view;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.JPanel;
 
+import jp.gr.java_conf.turner.comiket.csv.Circle;
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument;
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Area;
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Days;
-import static jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Days.*;
-import static jp.gr.java_conf.turner.comiket.gui.doc.MapDocument.Area.*;
 
 /**
  * @author TURNER
@@ -31,9 +31,9 @@ public class MapPanel extends JPanel implements Observer {
 //	private Image fg = null;
 
 	
-	private Days viewDay = DAY1;
+	private Days viewDay = Days.DAY1;
 
-	private Area viewArea = E123;
+	private Area viewArea = Area.E123;
 
 	private MapDocument doc;
 	
@@ -63,6 +63,19 @@ public class MapPanel extends JPanel implements Observer {
 		Image fg = doc.getFGImage(viewDay, viewArea);
 		if (fg != null) {
 			g.drawImage(fg, 0, 0, this);
+		}
+		List<Circle> circles = doc.getCircles(viewDay, viewArea);
+		if(circles!=null){
+			int size = circles.size();
+			int[] xs = new int[size];
+			int[] ys = new int[size];
+			for(int i=0;i<size;i++){
+				Circle c = circles.get(i);
+				xs[i] = c.getMapX();
+				ys[i] = c.getMapY();
+			}
+			g.setColor(Color.RED);
+			g.drawPolyline(xs, ys, size);
 		}
 	}
 
