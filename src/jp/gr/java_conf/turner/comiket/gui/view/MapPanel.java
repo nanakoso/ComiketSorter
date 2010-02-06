@@ -9,8 +9,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -29,6 +29,10 @@ import jp.gr.java_conf.turner.comiket.sorter.elem.AbstractCircle;
  */
 @SuppressWarnings("serial")
 public class MapPanel extends JPanel implements Observer {
+
+	private static final int G_OFFSET_X = 1;
+
+	private static final int G_OFFSET_Y = 1;
 
 	private static final int OFFSET_X = 5;
 
@@ -71,33 +75,48 @@ public class MapPanel extends JPanel implements Observer {
 
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
-		g2.setColor(Color.RED);
 
 		g2.setStroke(new BasicStroke(6));
 		List<Circle> circles = doc.getCircles(viewDay, viewArea);
 		if (circles != null) {
 			int size = circles.size();
-			GeneralPath path = new GeneralPath();
+			int[] xs = new int[size];
+			int[] ys = new int[size];
 			for (int i = 0; i < size; i++) {
+
 				Circle c = circles.get(i);
 				int x, y;
 				if (c instanceof AbstractCircle) {
 					AbstractCircle ac = (AbstractCircle) c;
-					x = ac.getX();
-					y = ac.getY();
+					x = ac.getX()+G_OFFSET_X;
+					y = ac.getY()+G_OFFSET_Y;
 				} else {
 					x = c.getMapX() + OFFSET_X;
 					y = c.getMapY() + OFFSET_Y;
 				}
-				if (i == 0) {
-					path.moveTo(x, y);
-				} else {
-					path.lineTo(x, y);
-				}
-				g2.draw(new Line2D.Float(x, y, x, y));
+				xs[i] = x;
+				ys[i] = y;
 			}
-			g2.setStroke(new BasicStroke(2));
+
+
+			GeneralPath path = new GeneralPath();
+			for (int i = 0; i < size; i++) {
+				if (i == 0) {
+					path.moveTo(xs[i], ys[i]);
+				} else {
+					path.lineTo(xs[i], ys[i]);
+				}
+			}
+			g2.setColor(Color.RED);
+			g2.setStroke(new BasicStroke(2,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
 			g2.draw(path);
+
+			g2.setColor(Color.BLUE);
+			g2.setStroke(new BasicStroke(1));
+			for (int i = 0; i < size; i++) {
+				g2.draw(new Ellipse2D.Float(xs[i] - 3, ys[i] - 3, 6, 6));
+			}
+
 		}
 	}
 
@@ -111,7 +130,6 @@ public class MapPanel extends JPanel implements Observer {
 			repaint();
 		}
 	}
-
 
 	/**
 	 * @param day
