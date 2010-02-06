@@ -54,7 +54,7 @@ public class MapDocument extends Observable {
 
 	private File catalogRoot = null;
 
-	private File csvRoot = null;
+	private File csvFile = null;
 
 	boolean validCatalogRoot = false;
 
@@ -129,11 +129,11 @@ public class MapDocument extends Observable {
 		ex.execute(new Runnable() {
 
 			public void run() {
-				MapDocument.this.csvRoot = null;
+				MapDocument.this.csvFile = null;
 				if (f != null) {
 					MapDocument.this.readCSVFile(f);
 				}
-				MapDocument.this.csvRoot = f;
+				MapDocument.this.csvFile = f;
 				MapDocument.this.setChanged();
 				MapDocument.this.notifyObservers();
 			}
@@ -445,8 +445,8 @@ public class MapDocument extends Observable {
 	/**
 	 * @return
 	 */
-	public File getCSVRoot() {
-		return this.csvRoot;
+	public File getCSVFile() {
+		return this.csvFile;
 	}
 
 	public static void shutdownNow() {

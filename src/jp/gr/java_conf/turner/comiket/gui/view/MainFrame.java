@@ -74,9 +74,10 @@ public class MainFrame extends JFrame {
 		this.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				//キャンセル等未実装
+				// キャンセル等未実装
 				MainFrame.this.dispose();
 			}
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 				MapDocument.shutdownNow();
@@ -187,6 +188,7 @@ public class MainFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			File defaultRoot = MainFrame.this.doc.getCatalogRoot();
 			jFileChooser.setSelectedFile(defaultRoot);
+			jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int selected = jFileChooser.showOpenDialog(MainFrame.this);
 			switch (selected) {
 			case JFileChooser.APPROVE_OPTION:
@@ -201,8 +203,9 @@ public class MainFrame extends JFrame {
 
 	final Action aCSVOpen = new AbstractAction("CSVを開く ...") {
 		public void actionPerformed(ActionEvent e) {
-			File csvRoot = MainFrame.this.doc.getCSVRoot();
-			jFileChooser.setSelectedFile(csvRoot);
+			File csvFile = MainFrame.this.doc.getCSVFile();
+			jFileChooser.setSelectedFile(csvFile);
+			jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			int selected = jFileChooser.showOpenDialog(MainFrame.this);
 			switch (selected) {
 			case JFileChooser.APPROVE_OPTION:
