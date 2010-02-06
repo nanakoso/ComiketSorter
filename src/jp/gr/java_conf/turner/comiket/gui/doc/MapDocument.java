@@ -27,10 +27,11 @@ import jp.gr.java_conf.turner.comiket.csv.Header;
 import jp.gr.java_conf.turner.comiket.csv.UnKnown;
 import jp.gr.java_conf.turner.comiket.def.ComiketDate;
 import jp.gr.java_conf.turner.comiket.def.GenericDef;
+import jp.gr.java_conf.turner.comiket.sorter.AbstractSorter;
 import jp.gr.java_conf.turner.comiket.sorter.elem.AbstractCircle;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ListMultimap;
 
 /**
  * @author TURNER
@@ -64,7 +65,7 @@ public class MapDocument extends Observable {
 
 	private Header header = null;
 
-	private Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
+	private ListMultimap<BlockKey, Circle> circles = ArrayListMultimap.create();
 
 	private List<UnKnown> unKnownList = new ArrayList<UnKnown>();
 
@@ -168,14 +169,20 @@ public class MapDocument extends Observable {
 	 * @param comiketDate
 	 * @return
 	 */
-	private static Multimap<BlockKey, Circle> splitCircles(
+	private static ListMultimap<BlockKey, Circle> splitCircles(
 			Collection<Circle> circleList, List<ComiketDate> comiketDate) {
-		Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
+		ListMultimap<BlockKey, Circle> circles = ArrayListMultimap.create();
 		for (Circle c : circleList) {
 			Days day = Days.fromCircle(c, comiketDate);
 			SortBlock block = SortBlock.fromCircle(c);
 			if (day != null && block != null) {
 				BlockKey key = new BlockKey(day, block);
+				if (day == Days.DAY3
+						&& (block == SortBlock.E123 || block == SortBlock.E456)) {
+					((AbstractCircle) c).setLastEast(true);
+				} else {
+					((AbstractCircle) c).setLastEast(false);
+				}
 				circles.put(key, c);
 			} else {
 				circles.put(BlockKey.NULL_KEY, c);
@@ -378,7 +385,7 @@ public class MapDocument extends Observable {
 	}
 
 	public static enum SortBlock {
-		E123, E456, W1, W2, ;
+		W1, W2, E123, E456, ;
 
 		static private SortBlock fromCircle(Circle c) {
 			if (c.getPage() <= 0) {
@@ -447,6 +454,44 @@ public class MapDocument extends Observable {
 	 */
 	public File getCSVFile() {
 		return this.csvFile;
+	}
+
+	/**
+	 * ソート実行
+	 */
+	public void sort() {
+		ex.execute(new Runnable() {
+			ListMultimap<BlockKey, Circle> wk = ArrayListMultimap.create();
+
+			public void run() {
+				for (Days d : Days.values()) {
+					for (SortBlock b : SortBlock.values()) {
+						BlockKey blockKey = new BlockKey(d, b);
+						List<Circle> cs = circles.get(blockKey);
+						List<Circle> cs2 = sort(cs);
+						wk.putAll(blockKey, cs2);
+					}
+				}
+				wk.putAll(BlockKey.NULL_KEY, circles.get(BlockKey.NULL_KEY));
+
+				MapDocument.this.circles = wk;
+				MapDocument.this.setChanged();
+				MapDocument.this.notifyObservers();
+			}
+
+		});
+	}
+
+	/**
+	 * @param cs
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	private static List<Circle> sort(List<Circle> cs) {
+		AbstractSorter sorter = AbstractSorter
+				.getInstance(AbstractSorter.TWO_OPT_SORT);
+		return sorter.doSort(cs, null, null);
 	}
 
 	public static void shutdownNow() {

@@ -107,6 +107,7 @@ public class MainFrame extends JFrame {
 	private JToolBar initToolbar() {
 		JToolBar tb = new JToolBar();
 		tb.add(aCatalogOpen);
+		tb.add(aSort);
 		tb.addSeparator();
 
 		ButtonGroup g;
@@ -147,6 +148,12 @@ public class MainFrame extends JFrame {
 		tb.add(b);
 		return tb;
 	}
+	
+	final Action aSort = new AbstractAction("SORT!") {
+		public void actionPerformed(ActionEvent e) {
+			doc.sort();
+		}
+	};
 
 	final Action aDay1 = new AbstractAction("‚P“ú–Ú") {
 		public void actionPerformed(ActionEvent e) {

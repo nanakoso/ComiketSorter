@@ -352,6 +352,14 @@ public abstract class AbstractCircle extends Circle implements SortElement {
 		return (isLastEastFlg == 1);
 	}
 
+	public void setLastEast(boolean isLastEast) {
+		if (isLastEast) {
+			isLastEastFlg = 1;
+		} else {
+			isLastEastFlg = 0;
+		}
+	}
+
 	private int calcVerticalDetour(SortElement destarg) {
 		AbstractCircle dest = (AbstractCircle)destarg;
 
