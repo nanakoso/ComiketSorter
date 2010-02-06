@@ -12,6 +12,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,8 +66,6 @@ public class MapDocument extends Observable {
 
 	private Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
 
-	private List<Circle> dropCircles = new ArrayList<Circle>();
-
 	private List<UnKnown> unKnownList = new ArrayList<UnKnown>();
 
 	private List<Color> colorList = new ArrayList<Color>();
@@ -117,16 +116,34 @@ public class MapDocument extends Observable {
 
 		}
 
+		this.circles = splitCircles(circles.values(), comiketDate);
 		this.setChanged();
 		this.notifyObservers();
 	}
 
-	public void readCSVFile(File inFile) {
+	/**
+	 * @param f
+	 */
+	public void setCSVRoot(final File f) {
+
+		ex.execute(new Runnable() {
+
+			public void run() {
+				MapDocument.this.csvRoot = null;
+				if (f != null) {
+					MapDocument.this.readCSVFile(f);
+				}
+				MapDocument.this.csvRoot = f;
+				MapDocument.this.setChanged();
+				MapDocument.this.notifyObservers();
+			}
+		});
+	}
+
+	private void readCSVFile(File inFile) {
 		Header header = null;
 		List<Color> colorList = new ArrayList<Color>();
 		List<UnKnown> unKnownList = new ArrayList<UnKnown>();
-		Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
-		List<Circle> dropCircles = new ArrayList<Circle>();
 
 		List<Circle> circleList = new ArrayList<Circle>();
 		try {
@@ -135,11 +152,25 @@ public class MapDocument extends Observable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	
+
 		if (header == null) {
 			return;
 		}
-	
+
+		this.circles = splitCircles(circleList, this.comiketDate);
+		this.header = header;
+		this.colorList = colorList;
+		this.unKnownList = unKnownList;
+	}
+
+	/**
+	 * @param circleList
+	 * @param comiketDate
+	 * @return
+	 */
+	private static Multimap<BlockKey, Circle> splitCircles(
+			Collection<Circle> circleList, List<ComiketDate> comiketDate) {
+		Multimap<BlockKey, Circle> circles = ArrayListMultimap.create();
 		for (Circle c : circleList) {
 			Days day = Days.fromCircle(c, comiketDate);
 			SortBlock block = SortBlock.fromCircle(c);
@@ -147,15 +178,10 @@ public class MapDocument extends Observable {
 				BlockKey key = new BlockKey(day, block);
 				circles.put(key, c);
 			} else {
-				dropCircles.add(c);
+				circles.put(BlockKey.NULL_KEY, c);
 			}
 		}
-
-		this.header = header;
-		this.colorList = colorList;
-		this.unKnownList = unKnownList;
-		this.circles = circles;
-		this.dropCircles = dropCircles;
+		return circles;
 	}
 
 	/**
@@ -304,7 +330,9 @@ public class MapDocument extends Observable {
 		}
 	}
 
-	private class BlockKey {
+	private static class BlockKey {
+		private static final BlockKey NULL_KEY = new BlockKey(null, null);
+
 		final Days day;
 
 		final SortBlock sortBlock;
@@ -324,6 +352,12 @@ public class MapDocument extends Observable {
 			if (obj == null || !(obj instanceof BlockKey)) {
 				return false;
 			}
+			if (this == obj) {
+				return true;
+			}
+			if (this == NULL_KEY || obj == NULL_KEY) {
+				return false;
+			}
 			return this.day == ((BlockKey) obj).day
 					&& this.sortBlock == ((BlockKey) obj).sortBlock;
 		}
@@ -335,6 +369,9 @@ public class MapDocument extends Observable {
 		 */
 		@Override
 		public int hashCode() {
+			if (this == NULL_KEY) {
+				return super.hashCode();
+			}
 			return day.hashCode() + sortBlock.hashCode();
 		}
 
@@ -394,7 +431,8 @@ public class MapDocument extends Observable {
 			String weekday = c.getWeekDay();
 			for (Days d : Days.values()) {
 				if (d.ordinal() < comiketDate.size()) {
-					if (comiketDate.get(d.ordinal()).getWeekday().equals(weekday)) {
+					String wDay = comiketDate.get(d.ordinal()).getWeekday();
+					if (wDay.equals(weekday)) {
 						return d;
 					}
 				}
@@ -409,25 +447,6 @@ public class MapDocument extends Observable {
 	 */
 	public File getCSVRoot() {
 		return this.csvRoot;
-	}
-
-	/**
-	 * @param f
-	 */
-	public void setCSVRoot(final File f) {
-
-		ex.execute(new Runnable() {
-
-			public void run() {
-				MapDocument.this.csvRoot = null;
-				if (f != null) {
-					MapDocument.this.readCSVFile(f);
-				}
-				MapDocument.this.csvRoot = f;
-				MapDocument.this.setChanged();
-				MapDocument.this.notifyObservers();
-			}
-		});
 	}
 
 	public static void shutdownNow() {
