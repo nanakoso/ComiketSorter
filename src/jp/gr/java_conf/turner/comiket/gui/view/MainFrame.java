@@ -37,6 +37,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JRadioButton;
 import javax.swing.JToolBar;
+import javax.swing.filechooser.FileFilter;
+
 import jp.gr.java_conf.turner.comiket.gui.doc.MapDocument;
 
 /**
@@ -93,7 +95,7 @@ public class MainFrame extends JFrame {
 		final JMenuBar mb = new JMenuBar();
 		final JMenu mFile = new JMenu("ファイル");
 
-		mFile.add(aOpen);
+		mFile.add(aCatalogOpen);
 		mFile.add(aCSVOpen);
 		mFile.addSeparator();
 		mFile.add(aExit);
@@ -104,7 +106,7 @@ public class MainFrame extends JFrame {
 
 	private JToolBar initToolbar() {
 		JToolBar tb = new JToolBar();
-		tb.add(aOpen);
+		tb.add(aCatalogOpen);
 		tb.addSeparator();
 
 		ButtonGroup g;
@@ -146,8 +148,6 @@ public class MainFrame extends JFrame {
 		return tb;
 	}
 
-	final JFileChooser jFileChooser = new JFileChooser();
-
 	final Action aDay1 = new AbstractAction("１日目") {
 		public void actionPerformed(ActionEvent e) {
 			mapPanel.setViewDay(DAY1);
@@ -184,11 +184,12 @@ public class MainFrame extends JFrame {
 		}
 	};
 
-	final Action aOpen = new AbstractAction("カタログ開く ...") {
+	final Action aCatalogOpen = new AbstractAction("カタログ開く ...") {
+		private final JFileChooser jFileChooser = new JFileChooser();
+
 		public void actionPerformed(ActionEvent e) {
 			File defaultRoot = MainFrame.this.doc.getCatalogRoot();
 			jFileChooser.setSelectedFile(defaultRoot);
-			jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int selected = jFileChooser.showOpenDialog(MainFrame.this);
 			switch (selected) {
 			case JFileChooser.APPROVE_OPTION:
@@ -196,16 +197,21 @@ public class MainFrame extends JFrame {
 				System.out.println(f);
 				MainFrame.this.doc.setCatalogRoot(f);
 				break;
-			default:
 			}
+		}
+
+		{
+			jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		}
 	};
 
 	final Action aCSVOpen = new AbstractAction("CSVを開く ...") {
+
+		private final JFileChooser jFileChooser = new JFileChooser();
+
 		public void actionPerformed(ActionEvent e) {
 			File csvFile = MainFrame.this.doc.getCSVFile();
 			jFileChooser.setSelectedFile(csvFile);
-			jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			int selected = jFileChooser.showOpenDialog(MainFrame.this);
 			switch (selected) {
 			case JFileChooser.APPROVE_OPTION:
@@ -213,9 +219,33 @@ public class MainFrame extends JFrame {
 				System.out.println(f);
 				MainFrame.this.doc.setCSVRoot(f);
 				break;
-			default:
 			}
 		}
+
+		{
+			jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			jFileChooser.setFileFilter(new FileFilter() {
+
+				@Override
+				public boolean accept(File f) {
+					if (f.isDirectory()) {
+						return true;
+					}
+					String n = f.getName();
+					if (n != null && n.toUpperCase().endsWith("CSV")) {
+						return true;
+					}
+					return false;
+				}
+
+				@Override
+				public String getDescription() {
+					return "CD-ROMカタログチェックセーブファイル";
+				}
+			});
+
+		}
+
 	};
 
 	final Action aExit = new AbstractAction("終了") {
