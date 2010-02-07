@@ -226,13 +226,28 @@ public class MapDocument extends Observable {
 		}
 	}
 
+	/**
+	 * 現在のファイルに上書きセーブ （既存のファイルはBAKへ）
+	 * 
+	 * @param parent
+	 */
 	public void saveCSV(JFrame parent) {
-		if (this.csvFile == null) {
+		this.saveCSV(this.csvFile, parent);
+	}
+
+	/**
+	 * 既存ファイルをBAKに置き換えてセーブ
+	 * 
+	 * @param writeFile
+	 * @param parent
+	 */
+	private void saveCSV(File writeFile, JFrame parent) {
+		if (writeFile == null) {
 			return;
 		}
-		File dir = csvFile.getParentFile();
+		File dir = writeFile.getParentFile();
 
-		String nameBody = csvFile.getName();
+		String nameBody = writeFile.getName();
 		String ext = "";
 		int lastDot = nameBody.lastIndexOf('.');
 		if (lastDot >= 0) {
@@ -248,7 +263,7 @@ public class MapDocument extends Observable {
 			if (bakFile.exists()) {
 				bakFile.delete();
 			}
-			this.csvFile.renameTo(bakFile);
+			writeFile.renameTo(bakFile);
 			tmpFile.renameTo(this.csvFile);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(parent, this.csvFile.getName()
@@ -257,6 +272,12 @@ public class MapDocument extends Observable {
 		}
 	}
 
+	/**
+	 * 名前を指定してセーブ
+	 * 
+	 * @param file
+	 * @param parent
+	 */
 	public void saveCSVTo(File file, JFrame parent) {
 		if (file == null) {
 			return;
@@ -267,7 +288,7 @@ public class MapDocument extends Observable {
 					file.getName() + "を上書きしますか？", "ファイル上書き確認",
 					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if (dlg == JOptionPane.YES_OPTION) {
-				this.saveCSV(parent);
+				this.saveCSV(file, parent);
 			}
 			return;
 		}
@@ -281,6 +302,12 @@ public class MapDocument extends Observable {
 		return;
 	}
 
+	/**
+	 * ファイル書き込み処理本体
+	 * 
+	 * @param outFile
+	 * @throws IOException
+	 */
 	private void writeCSV(File outFile) throws IOException {
 		OutputStream os = new FileOutputStream(outFile);
 		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(os,
