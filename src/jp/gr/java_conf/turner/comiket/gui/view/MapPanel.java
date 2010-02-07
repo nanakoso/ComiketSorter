@@ -107,12 +107,12 @@ public class MapPanel extends JPanel implements Observer {
 					path.lineTo(xs[i], ys[i]);
 				}
 			}
-			g2.setColor(Color.RED);
+			g2.setColor(Color.BLUE);
 			g2.setStroke(new BasicStroke(2,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
 			g2.draw(path);
 
-			g2.setColor(Color.BLUE);
-			g2.setStroke(new BasicStroke(1));
+			g2.setColor(Color.RED);
+			g2.setStroke(new BasicStroke(2));
 			for (int i = 0; i < size; i++) {
 				g2.draw(new Ellipse2D.Float(xs[i] - 3, ys[i] - 3, 6, 6));
 			}
