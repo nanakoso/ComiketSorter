@@ -6,11 +6,15 @@ package jp.gr.java_conf.turner.comiket.gui.doc;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,6 +23,9 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import jp.gr.java_conf.turner.comiket.ComiketSorter;
 import jp.gr.java_conf.turner.comiket.csv.Circle;
@@ -217,6 +224,79 @@ public class MapDocument extends Observable {
 		for (ComiketDate d : this.comiketDate) {
 			System.out.println(d.getWeekday());
 		}
+	}
+
+	public void saveCSV(JFrame parent) {
+		if (this.csvFile == null) {
+			return;
+		}
+		File dir = csvFile.getParentFile();
+
+		String nameBody = csvFile.getName();
+		String ext = "";
+		int lastDot = nameBody.lastIndexOf('.');
+		if (lastDot >= 0) {
+			ext = nameBody.substring(lastDot);// ".CSV"
+			nameBody = nameBody.substring(0, lastDot);
+		}
+
+		File tmpFile;
+		try {
+			tmpFile = File.createTempFile(nameBody, ext, dir);
+			this.writeCSV(tmpFile);
+			File bakFile = new File(dir, nameBody + ".BAK");
+			if (bakFile.exists()) {
+				bakFile.delete();
+			}
+			this.csvFile.renameTo(bakFile);
+			tmpFile.renameTo(this.csvFile);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(parent, this.csvFile.getName()
+					+ "の書き込みに失敗しました。\n" + e.getMessage(), "エラー",
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public void saveCSVTo(File file, JFrame parent) {
+		if (file == null) {
+			return;
+		}
+		if (file.equals(this.csvFile) || file.exists()) {
+
+			int dlg = JOptionPane.showConfirmDialog(parent.getContentPane(),
+					file.getName() + "を上書きしますか？", "ファイル上書き確認",
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (dlg == JOptionPane.YES_OPTION) {
+				this.saveCSV(parent);
+			}
+			return;
+		}
+		try {
+			this.writeCSV(file);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(parent, file.getName()
+					+ "の書き込みに失敗しました。\n" + e.getMessage(), "エラー",
+					JOptionPane.ERROR_MESSAGE);
+		}
+		return;
+	}
+
+	private void writeCSV(File outFile) throws IOException {
+		OutputStream os = new FileOutputStream(outFile);
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(os,
+				ComiketSorter.WIN_SJIS));
+		ComiketSorter.writeLine(w, header);
+		ComiketSorter.writeLines(w, colorList);
+		for (Days d : Days.values()) {
+			for (SortBlock b : SortBlock.values()) {
+				List<Circle> cblock = circles.get(new BlockKey(d, b));
+				ComiketSorter.writeLines(w, cblock);
+			}
+		}
+		ComiketSorter.writeLines(w, circles.get(BlockKey.NULL_KEY));
+		ComiketSorter.writeLines(w, unKnownList);
+
+		w.close();
 	}
 
 	public File getCatalogRoot() {

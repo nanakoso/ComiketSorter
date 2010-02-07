@@ -98,6 +98,9 @@ public class MainFrame extends JFrame {
 		mFile.add(aCatalogOpen);
 		mFile.add(aCSVOpen);
 		mFile.addSeparator();
+		mFile.add(aSaveCSV);
+		mFile.add(aSaveAsCSV);
+		mFile.addSeparator();
 		mFile.add(aExit);
 		mb.add(mFile);
 
@@ -148,7 +151,7 @@ public class MainFrame extends JFrame {
 		tb.add(b);
 		return tb;
 	}
-	
+
 	final Action aSort = new AbstractAction("SORT!") {
 		public void actionPerformed(ActionEvent e) {
 			doc.sort();
@@ -192,6 +195,7 @@ public class MainFrame extends JFrame {
 	};
 
 	final Action aCatalogOpen = new AbstractAction("カタログ開く ...") {
+
 		private final JFileChooser jFileChooser = new JFileChooser();
 
 		public void actionPerformed(ActionEvent e) {
@@ -214,15 +218,15 @@ public class MainFrame extends JFrame {
 
 	final Action aCSVOpen = new AbstractAction("CSVを開く ...") {
 
-		private final JFileChooser jFileChooser = new JFileChooser();
+		private final JFileChooser jCSVFileChooser = new JFileChooser();
 
 		public void actionPerformed(ActionEvent e) {
 			File csvFile = MainFrame.this.doc.getCSVFile();
-			jFileChooser.setSelectedFile(csvFile);
-			int selected = jFileChooser.showOpenDialog(MainFrame.this);
+			jCSVFileChooser.setSelectedFile(csvFile);
+			int selected = jCSVFileChooser.showOpenDialog(MainFrame.this);
 			switch (selected) {
 			case JFileChooser.APPROVE_OPTION:
-				final File f = jFileChooser.getSelectedFile();
+				final File f = jCSVFileChooser.getSelectedFile();
 				System.out.println(f);
 				MainFrame.this.doc.setCSVRoot(f);
 				break;
@@ -230,29 +234,65 @@ public class MainFrame extends JFrame {
 		}
 
 		{
-			jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			jFileChooser.setFileFilter(new FileFilter() {
-
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String n = f.getName();
-					if (n != null && n.toUpperCase().endsWith("CSV")) {
-						return true;
-					}
-					return false;
-				}
-
-				@Override
-				public String getDescription() {
-					return "CD-ROMカタログチェックセーブファイル";
-				}
-			});
+			jCSVFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			jCSVFileChooser.setFileFilter(CSV_FILE_FILTER);
 
 		}
 
+	};
+
+	final Action aSaveAsCSV = new AbstractAction("ファイルを指定してセーブ") {
+		private final JFileChooser jCSVFileSaveChooser = new JFileChooser();
+
+		public void actionPerformed(ActionEvent e) {
+			File csvFile = MainFrame.this.doc.getCSVFile();
+			this.jCSVFileSaveChooser.setSelectedFile(csvFile);
+			int selected = jCSVFileSaveChooser.showOpenDialog(MainFrame.this);
+			switch (selected) {
+			case JFileChooser.APPROVE_OPTION:
+				final File f = jCSVFileSaveChooser.getSelectedFile();
+				System.out.println(f);
+				MainFrame.this.doc.saveCSVTo(f, MainFrame.this);
+				break;
+			}
+		}
+
+		{
+			jCSVFileSaveChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			jCSVFileSaveChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
+			jCSVFileSaveChooser.setDialogTitle("保存");
+			jCSVFileSaveChooser.setApproveButtonText("保存");
+			jCSVFileSaveChooser.setApproveButtonToolTipText("保存するファイル名を指定する");
+
+			jCSVFileSaveChooser.setFileFilter(CSV_FILE_FILTER);
+
+		}
+	};
+
+	final static FileFilter CSV_FILE_FILTER = new FileFilter() {
+
+		@Override
+		public boolean accept(File f) {
+			if (f.isDirectory()) {
+				return true;
+			}
+			String n = f.getName();
+			if (n != null && n.toUpperCase().endsWith("CSV")) {
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public String getDescription() {
+			return "CD-ROMカタログチェックセーブファイル";
+		}
+	};
+
+	final Action aSaveCSV = new AbstractAction("セーブ") {
+		public void actionPerformed(ActionEvent e) {
+			MainFrame.this.doc.saveCSV(MainFrame.this);
+		}
 	};
 
 	final Action aExit = new AbstractAction("終了") {

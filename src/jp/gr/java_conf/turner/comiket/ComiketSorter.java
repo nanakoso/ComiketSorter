@@ -869,9 +869,8 @@ public class ComiketSorter {
 		w.close();
 	}
 
-	private static void writeLines(Writer w, List list) throws IOException {
-		int ln = 0;
-		DecimalFormat fmt = new DecimalFormat("0000");
+	public static void writeLines(Writer w, List list) throws IOException {
+
 		Iterator i = list.iterator();
 		while (i.hasNext()) {
 			GenericCSVLine out = (GenericCSVLine) i.next();
@@ -880,7 +879,7 @@ public class ComiketSorter {
 
 	}
 
-	private static void writeLine(Writer w, GenericCSVLine out)
+	public static void writeLine(Writer w, GenericCSVLine out)
 		throws IOException {
 		if (out == null) {
 			return;
